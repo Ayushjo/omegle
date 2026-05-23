@@ -8,7 +8,12 @@ export const Room = ()=>{
     const [socket,setSocket] = useState<Socket|null>(null)
     const [connected,setConnected] =  useState(false)
     const [lobby,setLobby] = useState(true)
-    const [pc,setPc] = useState<RTCPeerConnection|null>(null)
+    const [sendingPc,setSendingPc] = useState<RTCPeerConnection|null>(null)
+    const [receivingPc,setReceivingPc] = useState<RTCPeerConnection|null>(null)
+    const [remoteVideoTrack,setRemoteVideoTrack] = useState<MediaStreamTrack|null>(null)
+    
+    const [remoteAudioTrack,setRemoteAudioTrack] = useState<MediaStreamTrack|null>(null)
+   
     useEffect(()=>{
         const socket = io(URL,{
             autoConnect:false
@@ -19,7 +24,7 @@ export const Room = ()=>{
             setConnected(true)
         })
         const peerConnection = new RTCPeerConnection()
-        setPc(peerConnection)
+        setSendingPc(peerConnection)
 
         socket.on("send-offer",async({roomId}:{roomId:string})=>{
             alert("send offer please")
@@ -36,18 +41,21 @@ export const Room = ()=>{
             
         })
 
-        socket.on("offer",async ({roomId,sdp})=>{
+        socket.on("offer",async ({roomId,offer})=>{
             alert("send answer")
             setLobby(false)
-            const answer = await peerConnection.createAnswer()
-            await peerConnection.setLocalDescription(answer)
+            const pc = new RTCPeerConnection()
+            pc.setRemoteDescription({sdp:offer,type:"offer"})
+            setReceivingPc(pc)
+            const answer = await pc.createAnswer()
+            await pc.setLocalDescription(answer)
             socket.emit("answer",{
                 roomId,sdp:answer
             })
         })
         socket.on("answer",async ({roomId,sdp})=>{
             setLobby(false)
-            await peerConnection.setRemoteDescription(sdp)
+            await peerConnection.setRemoteDescription({sdp,type:"answer"})
             alert("Connection Done")
 
         })

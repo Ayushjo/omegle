@@ -1,16 +1,34 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Link, Router } from "react-router-dom"
 
 export const Landing = () => {
     const [name,setName] = useState("")
+    const [joined,setJoined] = useState(false)
+    const [localVideoTrack,setLocalVideoTrack] = useState<MediaStreamTrack|null>(null)
+     const [localAudioTrack,setLocalAudioTrack] = useState<MediaStreamTrack|null>(null)
+     const videoRef = useRef<HTMLVideoElement>(null)
+    const getCam  =async()=>{
+        const stream = await window.navigator.mediaDevices.getUserMedia({
+            video:true,
+            audio:true
+        })
+        const videoTracks = stream.getVideoTracks()[0]
+        const audioTracks = stream.getAudioTracks()[0]
+        setLocalVideoTrack(videoTracks)
+        setLocalAudioTrack(audioTracks)
+        videoRef.current!.srcObject = stream
+        videoRef.current!.play()
+    }
+    useEffect(()=>{
+        if (videoRef && videoRef.current){
+            getCam()
+        }
+
+    })
     return (
         <>
-        <div className="flex flex-col items-center justify-center h-screen">
-            <h1 className="text-4xl  font-bold mb-4">Welcome to the Landing Page</h1>
-            <p className="text-lg">This is the landing page of the application.</p>
-        </div>
-        <input  className="border p-2 rounded" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your name" />
-        <Link to={`/room/?name=${name}`}>Join</Link>
+        <video ref={videoRef} autoPlay  className="w-64 h-64 " />
+        
         
         </>
         
