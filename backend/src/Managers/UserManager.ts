@@ -20,14 +20,17 @@ export class UserManager{
     addUser(name:string,socket:Socket){
         this.users.push({name,socket})
         this.queue.push(socket.id)
+        socket.emit("lobby")
         this.clearQueue()
         this.initHandlers(socket)
 
     }
 
     removeUser(socketId:Socket["id"]){
+        const user = this.users.find(user => user.socket.id === socketId)
         this.users = this.users.filter(user => user.socket.id !== socketId)
         this.queue = this.queue.filter(id => id !== socketId)
+        
 
     }
     clearQueue(){
@@ -52,7 +55,9 @@ export class UserManager{
         socket.on("answer",({sdp,roomId}:{sdp:string,roomId:string})=>{
             this.roomManager.onAnswer(roomId,sdp)
         })
-
+        socket.on("ice-candidate",({candidate,roomId}:{candidate:any,roomId:string})=>{
+            this.roomManager.onIceCandidate(roomId,candidate,socket)
+        })
     }
     
 }

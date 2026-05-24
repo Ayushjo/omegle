@@ -26,6 +26,17 @@ export class RoomManager{
             roomId
         })
     }
+    onIceCandidate(roomId:string,candidate:any,socket:Socket){
+        const room = this.rooms.get(roomId)
+        if(room){
+            const otherUser = room.user1.socket.id === socket.id ? room.user2 : room.user1
+            otherUser.socket.emit("ice-candidate",{
+                candidate,
+                roomId
+            })
+            
+        }
+    }
 
     onOffer(roomId:string,sdp:string){
         const user2 = this.rooms.get(roomId)?.user2
@@ -43,5 +54,9 @@ export class RoomManager{
     }
     generateRoomId(){
         return GLOBAL_ROOM_ID++;
+    }
+    deleteRoom(roomId:string){
+        const room  = this.rooms.get(roomId)
+        
     }
 }

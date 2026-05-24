@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, Router } from "react-router-dom"
+import { Room } from "./Room"
 
 export const Landing = () => {
     const [name,setName] = useState("")
@@ -16,7 +17,7 @@ export const Landing = () => {
         const audioTracks = stream.getAudioTracks()[0]
         setLocalVideoTrack(videoTracks)
         setLocalAudioTrack(audioTracks)
-        videoRef.current!.srcObject = stream
+        videoRef.current!.srcObject = new MediaStream([videoTracks])
         videoRef.current!.play()
     }
     useEffect(()=>{
@@ -25,13 +26,20 @@ export const Landing = () => {
         }
 
     })
-    return (
+    if (!joined){
+        return (
         <>
         <video ref={videoRef} autoPlay  className="w-64 h-64 " />
+        <input type="text" placeholder="Enter your name" value={name} onChange={(e)=>setName(e.target.value)} className="border p-2 m-2" />
+        <Link to={`/room?name=${name}`} className="bg-blue-500 text-white p-2 rounded" onClick={()=>setJoined(true)}>Join</Link>
         
         
         </>
         
     
     )
+
+    }
+    return <Room name={name} localVideoTrack={localVideoTrack} localAudioTrack={localAudioTrack}/>
+    
 }
